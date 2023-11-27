@@ -55,6 +55,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 		request.setAttribute(ProjectConstants.AUD_CUO, ProjectUtils.obtenerCodigoUnico());
 		request.setAttribute(ProjectConstants.AUD_IP, !ProjectUtils.isNullOrEmpty(request.getRemoteAddr()) ? request.getRemoteAddr() : request.getRemoteHost());
 		UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
+		log.info("{} vamos a ver la authentication", authentication);
 		if (authentication == null) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			filterChain.doFilter(request, response);
@@ -73,20 +74,28 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 	private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
 
 		String urlReq = request.getRequestURI();
+		log.info("{} rbv - debo ver que url recupera",urlReq);
 		String metodo = request.getMethod();
 		if(metodo.equalsIgnoreCase(ProjectConstants.METHOD_CORTA_ULTIMA_BARRA_INVERTIDA)) {
 			urlReq = urlReq.substring(0, urlReq.lastIndexOf("/"));//corta el id que se manda en la url
 		}
 		String token = request.getHeader(SecurityConstants.TOKEN_HEADER);
 		String remoteIp = request.getAttribute(ProjectConstants.AUD_IP).toString();
+		log.info("{} rbv - quiero ver la que traigo del  request",remoteIp);
 		String cuo = request.getAttribute(ProjectConstants.AUD_CUO).toString();
 		byte[] signingKey = SecurityConstants.JWT_SECRET.getBytes();
+		log.info("{} comprobamos si es vacio o no el token {}",ProjectUtils.isNullOrEmpty(token));
+		log.info("{} vemos que pasa con la lnea si se imprime ono ", signingKey);
+		log.info("{} comprobamos si el token empieza con barer {}",token.startsWith(SecurityConstants.TOKEN_PREFIX));
 		if (!ProjectUtils.isNullOrEmpty(token) && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+			log.info("ENTRAMOS AL IF");
 			try {
 				String jwt = token.replace("Bearer ", "");
+				log.info("{} extraemos Bearer del token ",jwt);
 				request.setAttribute(ProjectConstants.AUD_JWT, jwt);
+				log.info("{} ");
 				Jws<Claims> parsedToken = Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jwt);
-				
+				log.info("{} miarmos el parsed token ",parsedToken);
 				String accesoBase = (String) parsedToken.getBody().get(ProjectConstants.CLAIM_ACCESO);
 				String username = parsedToken.getBody().getSubject();
 				
@@ -131,9 +140,10 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 				
 			} catch (ExpiredJwtException exception) {
 				String ipRemotaToken = exception.getClaims().get(ProjectConstants.CLAIM_IP).toString();
+				log.info("{} rbv quiero ver que infomracion traes en la ip {} ",ipRemotaToken);
 				String subject = exception.getClaims().getSubject();
 				int total = (int) exception.getClaims().get(ProjectConstants.CLAIM_NUMERO);			
-				
+				log.info("{} rbv - quiero ver que ha en ttotal",total);
 				if (urlReq.endsWith("refresh") && remoteIp.equals(ipRemotaToken) && total<=ProjectConstants.NRO_VECES_REFRESH_CON_TOKEN_EXPIRADO) { // && !ahora.after(limiteRefresh)
 					List<SimpleGrantedAuthority> authorities = ((List<?>) exception.getClaims().get(ProjectConstants.CLAIM_ROL)).stream()
 							.map(authority -> new SimpleGrantedAuthority((String) authority))

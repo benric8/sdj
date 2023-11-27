@@ -56,19 +56,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		String cuo= ProjectUtils.obtenerCodigoUnico();
 		String username = request.getHeader(SecurityConstants.CRE_USERNAME);
 		String password = request.getHeader(SecurityConstants.CRE_PASSWORD);
+		log.info("{} vemos que pasa al recuperar el usuario del header : {}",username);
+		log.info("{} vemos que pasa al recuperar la contraseña del header: {}",password);
 		String codigoCliente = request.getHeader(SecurityConstants.CRE_COD_CLIENTE);
 		String codigoRol= request.getHeader(SecurityConstants.CRE_COD_ROL);
 		String idUsuario = null;
 		try {
 			username= EncryptUtils.decryptPastFrass(username);
 			password= EncryptUtils.decryptPastFrass(password);
+			log.info("{} vemos que pasa al recuperar el usuario decr : {}",username);
+			log.info("{} vemos que pasa al recuperar la contraseña decri : {}",password);
 			idUsuario = seguridadService.autenticarUsuario(cuo, codigoCliente, codigoRol, username, password);
+			log.info("{} comprobamos si recuperamos el id de usuario",idUsuario);
 		} catch (Exception e) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			log.error("{} ERROR AUTENTIFICANDO USUARIO CON BASE DE DATOS DE SEGURIDAD : {}",cuo,ProjectUtils.convertExceptionToString(e));
 			return null;
 		}
 		if (idUsuario != null && !idUsuario.isEmpty()) {
+			log.info("{} comprobamos qie devuelve el ", authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(idUsuario, EncryptUtils.encrypt(username, password))));
 			return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(idUsuario, EncryptUtils.encrypt(username, password)));
 		}
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -87,6 +93,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,FilterChain filterChain, Authentication authentication) throws IOException {
 		User user = ((User) authentication.getPrincipal());
+		log.info("{} user ", user);
 		List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 		byte[] signingKey = SecurityConstants.JWT_SECRET.getBytes();
 		
@@ -123,7 +130,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	*/
 	@Override
 	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-		log.error("ERROR CON LA UTORIZACION DE SPRING SECURITY: "+failed.getMessage());
+		log.error("ERROR CON LA AUTORIZACION DE SPRING SECURITY: "+failed.getMessage());
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 	}
 }

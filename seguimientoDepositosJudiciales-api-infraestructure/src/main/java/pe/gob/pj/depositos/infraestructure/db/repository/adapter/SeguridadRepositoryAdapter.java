@@ -44,8 +44,10 @@ public class SeguridadRepositoryAdapter implements SeguridadRepositoryPort{
 			query.setParameter(MaeRolUsuario.P_COD_ROL, codigoRol);
 			query.setParameter(MaeRolUsuario.P_COD_CLIENTE, codigoCliente);
 			query.setParameter(MaeRolUsuario.P_N_APLICATIVO, nAplicacion);
-			MaeUsuario usr =  query.getSingleResult();
 			String claveFinal = EncryptUtils.encrypt(usuario, clave);
+			log.info("{} vemos la clave que se ercupera desde header combinada con usuario ",claveFinal);
+			MaeUsuario usr =  query.getSingleResult();
+			log.info("{} vemos la clave que se ercupera desde l bd ",usr.getCClave());
 			if(ProjectUtils.isNull(usr.getCClave()).trim().equals(claveFinal)) {
 				user.setId(usr.getNUsuario());
 				user.setCClave(ProjectUtils.isNull(usr.getCClave()));

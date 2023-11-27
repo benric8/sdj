@@ -103,6 +103,7 @@ public class DefaultController implements Serializable{
 			try {
 				String jwt = token.replace("Bearer ", "");
 				Jws<Claims> parsedToken = Jwts.parser().setSigningKey(signingKey).parseClaimsJws(jwt);
+				log.info("{} el parsed token ",parsedToken);
 				String accesoBase =  (String) parsedToken.getBody().get(ProjectConstants.CLAIM_ACCESO);
 				List<String> roles = (List<String>) parsedToken.getBody().get(ProjectConstants.CLAIM_ROL);
 				String ipRemotaToken = parsedToken.getBody().get(ProjectConstants.CLAIM_IP).toString();

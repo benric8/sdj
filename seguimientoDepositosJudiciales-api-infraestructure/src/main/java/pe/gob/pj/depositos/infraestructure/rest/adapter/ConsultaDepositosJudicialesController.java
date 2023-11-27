@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
+import pe.gob.pj.depositos.domain.utils.ProjectConstants;
 import pe.gob.pj.depositos.infraestructure.rest.response.GlobalResponse;
 
 
@@ -18,8 +20,8 @@ import pe.gob.pj.depositos.infraestructure.rest.response.GlobalResponse;
 @RequestMapping(value = "consulta",produces = MediaType.APPLICATION_JSON_VALUE)
 public class ConsultaDepositosJudicialesController {
 	
-	@GetMapping(value="depositoJudicial")
-	public ResponseEntity<GlobalResponse> consultarDeposito(){
+	@GetMapping(value="depositosJudiciales")
+	public ResponseEntity<GlobalResponse> consultarDeposito(@RequestAttribute(name =ProjectConstants.AUD_CUO) String cuo){
 		GlobalResponse res = new GlobalResponse();
 		try {
 			res.setCodigoOperacion("200");
@@ -33,7 +35,7 @@ public class ConsultaDepositosJudicialesController {
 		} catch (Exception e) {
 			res.setCodigoOperacion("500");
 			res.setCodigo("mal");
-			log.error("eror");
+			log.error("{} eror",cuo );
 		}
 		
 		return new ResponseEntity<GlobalResponse>(res,HttpStatus.OK);

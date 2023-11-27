@@ -59,7 +59,33 @@ public class DataSourceConfig {
 	}
 	
 	/* Creación de conexión con la base de datos SIJ_002 */
-	
+	@Bean(name = "cxSij_002DS")
+	public DataSource jndiConexionSIJ() throws IllegalArgumentException, NamingException {
+		JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
+		bean.setJndiName("java:jboss/datasources/seguimientoDepositosJudicialesAPISIJ_002");
+		bean.setProxyInterface(DataSource.class);
+		bean.setLookupOnStartup(false);
+		bean.setCache(true);
+		bean.afterPropertiesSet();
+		return (DataSource) bean.getObject();
+	}	
+		
+	@Bean(name = "sessionSij002")
+	public SessionFactory getSessionFactorySIJ(@Qualifier("cxSij_002DS") DataSource sijDS) throws IOException {
+		LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
+		sessionFactoryBean.setPackagesToScan("pe.gob.pj.depositos.infraestructure.db.entity.sij");
+		sessionFactoryBean.setHibernateProperties(getHibernatePropertiesPostgresql());
+		sessionFactoryBean.setDataSource(sijDS);
+		sessionFactoryBean.afterPropertiesSet();
+		return sessionFactoryBean.getObject();
+	}
+
+	@Bean(name = "txManagerSij")
+	public HibernateTransactionManager getTransactionManagerSIJ(@Qualifier("sessionSij002") SessionFactory sessionSeguridad) throws IOException {
+		HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+		transactionManager.setSessionFactory(sessionSeguridad);
+		return transactionManager;
+	}
 	
 	
 	
